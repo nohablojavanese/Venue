@@ -1,6 +1,24 @@
-"use client";
+'use client';
 import React, { useState } from "react";
-import { VenueId, Lapangan } from "@/lib";
+import { z, ZodError } from "zod";
+import { VenueId, Lapangan } from "@/lib"; 
+
+// Define schema using Zod
+const venueSchema = z.object({
+  name: z.string().min(2),
+  desc: z.string().min(10),
+  price: z.number().min(0),
+  tags: z.array(z.string()),
+  lapangan: z.array(
+    z.object({
+      lapanganId: z.string(),
+      childId: z.string(),
+      name: z.string(),
+      price: z.number().min(0),
+    })
+  ),
+});
+
 export default function CreateVenuePage() {
   const [venue, setVenue] = useState<VenueId>({
     name: "",
@@ -16,12 +34,15 @@ export default function CreateVenuePage() {
     name: "",
     price: 0,
   });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setVenue({ ...venue, [name]: value });
+    // Clear errors for the field being changed
+    setErrors({ ...errors, [name]: "" });
   };
 
   const handleTagAdd = () => {
@@ -31,7 +52,9 @@ export default function CreateVenuePage() {
     }
   };
 
-  const handleLapanganChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLapanganChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
     setNewLapangan({
       ...newLapangan,
@@ -41,22 +64,74 @@ export default function CreateVenuePage() {
 
   const handleLapanganAdd = () => {
     if (newLapangan.name && newLapangan.lapanganId) {
-      setVenue({ ...venue, lapangan: [...venue.lapangan, newLapangan] });
-      setNewLapangan({ lapanganId: "", childId: "", name: "", price: 0 });
+      setVenue({
+        ...venue,
+        lapangan: [...venue.lapangan, newLapangan],
+      });
+      setNewLapangan({
+        lapanganId: "",
+        childId: "",
+        name: "",
+        price: 0,
+      });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate venue data against schema
     try {
+      const validatedVenue = venueSchema.parse(venue);
+      console.log("Validated venue:", validatedVenue);
+
       const response = await fetch("/api/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(venue),
+        body: JSON.stringify(validatedVenue),
       });
+
+      if (response.ok) {
+        console.log("Venue added successfully");
+        // Reset form or show success message
+        setVenue({
+          name: "",
+          desc: "",
+          tags: [],
+          price: 0,
+          lapangan: [],
+        });
+        setNewTag("");
+        setNewLapangan({
+          lapanganId: "",
+          childId: "",
+          name: "",
+          price: 0,
+        });
+      } else {
+        console.error("Failed to add venue:", response.statusText);
+        // Handle error
+        // Optionally, show error message to the user
+        alert("Failed to add venue. Please try again.");
+      }
     } catch (error) {
-      console.error("Error adding venue:", error);
-      alert("Failed to add venue. Please try again.");
+      if (error instanceof ZodError) {
+        console.error("Validation failed:", error.errors);
+        // Handle validation errors (e.g., display error messages to users)
+        const fieldErrors: { [key: string]: string } = {};
+        error.errors.forEach((err) => {
+          // Map ZodError messages to specific fields
+          if (err.path) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        console.error("Error adding venue:", error);
+        // Handle other errors (e.g., network errors)
+        // Optionally, show error message to the user
+        alert("Failed to add venue. Please try again.");
+      }
     }
   };
 
@@ -78,8 +153,13 @@ export default function CreateVenuePage() {
             value={venue.name}
             onChange={handleChange}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
+              errors.name ? "border-red-500" : ""
+            }`}
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
         <div>
           <label
@@ -94,8 +174,13 @@ export default function CreateVenuePage() {
             value={venue.desc}
             onChange={handleChange}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
+              errors.desc ? "border-red-500" : ""
+            }`}
           />
+          {errors.desc && (
+            <p className="text-red-500 text-sm mt-1">{errors.desc}</p>
+          )}
         </div>
         <div>
           <label
@@ -111,8 +196,13 @@ export default function CreateVenuePage() {
             value={venue.price}
             onChange={handleChange}
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
+              errors.price ? "border-red-500" : ""
+            }`}
           />
+          {errors.price && (
+            <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
