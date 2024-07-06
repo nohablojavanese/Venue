@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { z, ZodError } from "zod";
 import { VenueId,Lapangan } from "@/lib/type";
 
-// Define schema using Zod
 const venueSchema = z.object({
   name: z.string().min(2),
   desc: z.string().min(10),
