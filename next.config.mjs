@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["*","upload.wikimedia.org"], // Allow any external domain
+    remotePatterns: ["*","upload.wikimedia.org"], // Allow any external domain
   },
 };
 
