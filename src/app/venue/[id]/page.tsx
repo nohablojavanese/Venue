@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Venue, PageProps } from "@/lib";
+import { PageProps, Venue } from "@/lib/type";
 
 export default function VenueDetailPage({ params }: PageProps) {
   const [venue, setVenue] = useState<Venue | null>(null);

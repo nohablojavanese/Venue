@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from "react";
 import { z, ZodError } from "zod";
-import { VenueId, Lapangan } from "@/lib"; 
+import { VenueId,Lapangan } from "@/lib/type";
 
 // Define schema using Zod
 const venueSchema = z.object({
