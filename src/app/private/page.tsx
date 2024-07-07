@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import SignOutButton from "@/components/ui/signoutbtn";
 import DeleteAccountButton from "@/components/ui/deletebtn";
+import Link from "next/link";
 
 export default async function PrivatePage() {
   const supabase = createClient();
@@ -62,7 +63,9 @@ export default async function PrivatePage() {
                   App Metadata
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 overflow-x-auto">
-                  <pre className="whitespace-pre">{JSON.stringify(user.app_metadata, null, 2)}</pre>
+                  <pre className="whitespace-pre">
+                    {JSON.stringify(user.app_metadata, null, 2)}
+                  </pre>
                 </dd>
               </div>
             )}
@@ -72,7 +75,9 @@ export default async function PrivatePage() {
                   User Metadata
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 overflow-x-auto">
-                  <pre className="whitespace-pre">{JSON.stringify(user.user_metadata, null, 2)}</pre>
+                  <pre className="whitespace-pre">
+                    {JSON.stringify(user.user_metadata, null, 2)}
+                  </pre>
                 </dd>
               </div>
             )}
@@ -80,7 +85,12 @@ export default async function PrivatePage() {
         </div>
         <div className="flex justify-center items-center px-4 py-5 sm:px-6 space-x-2">
           <SignOutButton />
-          <DeleteAccountButton/>
+          <Link href={'/chat'}>
+            <button className="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-blue-600 transition duration-300">
+              Test Room
+            </button>
+          </Link>
+          <DeleteAccountButton />
         </div>
       </div>
     </div>
