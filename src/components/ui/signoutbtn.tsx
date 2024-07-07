@@ -20,7 +20,7 @@ export default function SignOutButton() {
       onClick={handleSignOut}
       className="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-red-600 transition duration-300"
     >
-      Sign Out
+      Keluar
     </button>
   );
 }

@@ -78,7 +78,7 @@ export default async function PrivatePage() {
             )}
           </dl>
         </div>
-        <div className="flex justify-center items-center px-4 py-5 sm:px-6">
+        <div className="flex justify-center items-center px-4 py-5 sm:px-6 space-x-2">
           <SignOutButton />
           <DeleteAccountButton/>
         </div>
