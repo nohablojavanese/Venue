@@ -7,8 +7,6 @@ export default async function ChatRoomPage({ params }: { params: { roomId: strin
   const cookieStore = cookies();
   const supabase = createClient();
 
-  // console.log('Attempting to fetch user and room data for roomId:', params.roomId);
-
   if (!params.roomId) {
     console.error('roomId is undefined');
     notFound();
@@ -47,8 +45,6 @@ export default async function ChatRoomPage({ params }: { params: { roomId: strin
       console.log('No room found for id:', params.roomId);
       notFound();
     }
-
-    console.log('Room found:', room);
 
     if (room.is_private) {
       console.log('Room is private, checking membership');
