@@ -2,7 +2,11 @@
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
-export default function SignOutButton() {
+interface SignOutButtonProps {
+  customClass?: string;
+}
+
+export default function SignOutButton({ customClass }: SignOutButtonProps) {
   const router = useRouter();
   const supabase = createClient();
 
@@ -18,7 +22,7 @@ export default function SignOutButton() {
   return (
     <button
       onClick={handleSignOut}
-      className="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-red-600 transition duration-300"
+      className={`${customClass} bg-gray-500 hover:bg-gray-600 focus:ring-gray-500`}
     >
       Keluar
     </button>

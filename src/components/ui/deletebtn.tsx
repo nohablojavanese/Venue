@@ -3,7 +3,11 @@ import React, { useState } from 'react';
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
-export default function DeleteAccountButton() {
+interface DeleteAccountButtonProps {
+  customClass?: string;
+}
+
+export default function DeleteAccountButton({ customClass }: DeleteAccountButtonProps) {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -23,7 +27,7 @@ export default function DeleteAccountButton() {
     <>
       <button
         onClick={() => setShowConfirmation(true)}
-        className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300"
+        className={`${customClass} bg-red-500 hover:bg-red-600 focus:ring-red-500`}
       >
         Hapus Akun
       </button>
@@ -36,13 +40,13 @@ export default function DeleteAccountButton() {
             <div className="flex justify-end">
               <button
                 onClick={() => setShowConfirmation(false)}
-                className="mr-2 px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition duration-300"
+                className="mr-2 px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               >
                 Batalkan
               </button>
               <button
                 onClick={handleDeleteAccount}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300"
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Ya, Hapus
               </button>
