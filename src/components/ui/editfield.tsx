@@ -6,6 +6,7 @@ interface EditableFieldProps {
   isEditing: boolean;
   onChange?: (value: string) => void;
   error?: string;
+  placeholder?: string;
 }
 
 export default function EditableField({ label, value, isEditing, onChange, error }: EditableFieldProps) {
@@ -20,7 +21,7 @@ export default function EditableField({ label, value, isEditing, onChange, error
               value={value}
               onChange={(e) => onChange(e.target.value)}
               className={`w-full p-2 border rounded ${error ? 'border-red-500' : ''}`}
-              placeholder={`Enter your ${label.toLowerCase()}`}
+              placeholder={`Masukan ${label.toLowerCase()} kamu`}
             />
             {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
           </div>

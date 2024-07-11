@@ -4,26 +4,43 @@ import React, { useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { z } from 'zod';
 import Select from 'react-select';
+import Filter from 'bad-words';
 import EditableField from './editfield';
 import SignOutButton from './signoutbtn';
 import DeleteAccountButton from './deletebtn';
 import Link from 'next/link';
 import { updateUserProfile } from '@/app/private/action';
+import { indonesianBadWords } from '@/lib/badword';
+const customFilter = new Filter();
+
+
+customFilter.addWords(...indonesianBadWords);
 
 const userSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters long"),
-  phone: z.string().regex(/^\+?[0-9]{10,14}$/, "Invalid phone number"),
+  name: z.string().min(4, "Nama minimal 4 huruf").refine(
+    (name) => !customFilter.isProfane(name),
+    {
+      message: "Bahasanya dijaga dong puki!",
+    }
+  ),
+  phone: z.string().regex(/^\+?[0-9]{10,14}$/, "Nomor telepon salah"),
   location: z.string().optional(),
+  bio: z.string().max(500, "Bio must be 500 characters or less").refine(
+    (bio) => !customFilter.isProfane(bio),
+    {
+      message: "Bio contains inappropriate language",
+    }
+  ),
 });
 
 type UserData = z.infer<typeof userSchema>;
 
 const indonesianLocations = [
-  { value: 'jakarta', label: 'Jakarta' },
-  { value: 'surabaya', label: 'Surabaya' },
-  { value: 'bandung', label: 'Bandung' },
-  { value: 'medan', label: 'Medan' },
-  { value: 'semarang', label: 'Semarang' },
+  { value: 'Jakarta', label: 'Jakarta' },
+  { value: 'Surabaya', label: 'Surabaya' },
+  { value: 'Bandung', label: 'Bandung' },
+  { value: 'Medan', label: 'Medan' },
+  { value: 'Semarang', label: 'Semarang' },
   // Add more locations as needed
 ];
 
@@ -39,6 +56,7 @@ export default function UserProfile({ user }: UserProfileProps) {
     name: user.user_metadata.name || '',
     phone: user.user_metadata.phone || '',
     location: user.user_metadata.location || '',
+    bio: user.user_metadata.bio || '',
   });
   const [errors, setErrors] = useState<Partial<UserData>>({});
 
@@ -64,6 +82,7 @@ export default function UserProfile({ user }: UserProfileProps) {
 
   const handleChange = (field: keyof UserData, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
+    setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   return (
@@ -75,7 +94,7 @@ export default function UserProfile({ user }: UserProfileProps) {
       <div className="border-t border-gray-200">
         <dl>
           <EditableField
-            label="Name"
+            label="Nama"
             value={userData.name}
             isEditing={isEditing}
             onChange={(value) => handleChange('name', value)}
@@ -87,27 +106,35 @@ export default function UserProfile({ user }: UserProfileProps) {
             isEditing={false}
           />
           <EditableField
-            label="Phone"
+            label="Nomor HP"
             value={userData.phone}
             isEditing={isEditing}
             onChange={(value) => handleChange('phone', value)}
             error={errors.phone}
           />
           <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">Location</dt>
+            <dt className="text-sm font-medium text-gray-500">Lokasi</dt>
             <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
               {isEditing ? (
                 <Select
                   options={indonesianLocations}
                   value={indonesianLocations.find(loc => loc.value === userData.location)}
                   onChange={(selectedOption) => handleChange('location', selectedOption?.value || '')}
-                  placeholder="Select location"
+                  placeholder="Pilih Lokasi"
                 />
               ) : (
-                userData.location || 'Not set'
+                userData.location || 'Belum ada Lokasi'
               )}
             </dd>
           </div>
+          <EditableField
+            label="Bio"
+            value={userData.bio}
+            isEditing={isEditing}
+            onChange={(value) => handleChange('bio', value)}
+            error={errors.bio}
+            // isTextarea={true}
+          />
           <EditableField
             label="User ID"
             value={user.id}

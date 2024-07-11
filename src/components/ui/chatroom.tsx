@@ -3,12 +3,17 @@ import React, { useEffect, useState, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 interface Message {
   id: string;
-  user_id: string;  
+  user_id: string;
   content: string;
   created_at: string;
+  user_metadata?: {
+    name?: string;
+    location?: string;
+  };
 }
 
 interface ChatRoomProps {
@@ -22,10 +27,16 @@ export default function ChatRoom({ roomId, currentUser }: ChatRoomProps) {
   const [error, setError] = useState<string | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!currentUser.user_metadata.name) {
+      router.push('/private');
+    }
+  }, [currentUser, router]);
 
   useEffect(() => {
     const fetchMessages = async () => {
-      console.log('Fetching messages for room:', roomId);
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -36,8 +47,25 @@ export default function ChatRoom({ roomId, currentUser }: ChatRoomProps) {
         console.error('Error fetching messages:', error);
         setError(`Failed to fetch messages: ${error.message}`);
       } else {
-        console.log('Fetched messages:', data);
-        setMessages(data || []);
+        const messagesWithUserData = await Promise.all(data.map(async (message) => {
+          const { data: userData, error: userError } = await supabase
+            .from('auth.users')
+            .select('user_metadata')
+            .eq('id', message.user_id)
+            .single();
+
+          if (userError) {
+            console.error('Error fetching user data:', userError);
+            return message;
+          }
+
+          return {
+            ...message,
+            user_metadata: userData?.user_metadata
+          };
+        }));
+
+        setMessages(messagesWithUserData);
         setError(null);
       }
     };
@@ -46,17 +74,29 @@ export default function ChatRoom({ roomId, currentUser }: ChatRoomProps) {
 
     const channel = supabase
       .channel(`room:${roomId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${roomId}` }, (payload) => {
-        console.log('New message received:', payload.new);
-        setMessages((prev) => [...prev, payload.new as Message]);
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${roomId}` }, async (payload) => {
+        const { data: userData, error: userError } = await supabase
+          .from('auth.users')
+          .select('user_metadata')
+          .eq('id', payload.new.user_id)
+          .single();
+
+        if (userError) {
+          console.error('Error fetching user data:', userError);
+        }
+
+        const newMessage: Message = {
+          ...payload.new as Message,
+          user_metadata: userData?.user_metadata
+        };
+        setMessages((prev) => [...prev, newMessage]);
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId]);
+  }, [roomId, supabase]);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -66,7 +106,6 @@ export default function ChatRoom({ roomId, currentUser }: ChatRoomProps) {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    console.log('Sending message:', newMessage);
     const { error } = await supabase
       .from('messages')
       .insert({ user_id: currentUser.id, content: newMessage, room_id: roomId });
@@ -75,7 +114,6 @@ export default function ChatRoom({ roomId, currentUser }: ChatRoomProps) {
       console.error('Error sending message:', error);
       setError(`Failed to send message: ${error.message}`);
     } else {
-      console.log('Message sent successfully');
       setNewMessage('');
       setError(null);
     }
@@ -91,6 +129,8 @@ export default function ChatRoom({ roomId, currentUser }: ChatRoomProps) {
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.user_id === currentUser.id ? 'justify-end' : 'justify-start'}`}>
             <div className={`p-3 rounded-lg ${message.user_id === currentUser.id ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>
+              <p className="font-bold">{message.user_metadata?.name || 'Unknown User'}</p>
+              <p className="text-sm italic">{message.user_metadata?.location || 'Unknown Location'}</p>
               <p>{message.content}</p>
               <p className="text-xs mt-1 opacity-70">{format(new Date(message.created_at), 'MMM d, yyyy HH:mm')}</p>
             </div>
