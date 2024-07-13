@@ -1,4 +1,3 @@
-// /components/AuthForm.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -51,18 +50,18 @@ export default function AuthForm({ onSubmit }: AuthFormProps) {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) {
-      console.error("Error signing in with Google:", error);
-      setErrors({ email: [error.message] });
-    }
-  };
+  // const handleGoogleLogin = async () => {
+  //   const { error } = await supabase.auth.signInWithOAuth({
+  //     provider: "google",
+  //     options: {
+  //       redirectTo: `${window.location.origin}/auth/callback`,
+  //     },
+  //   });
+  //   if (error) {
+  //     console.error("Error signing in with Google:", error);
+  //     setErrors({ email: [error.message] });
+  //   }
+  // };
 
   return (
     <div className="max-w-md w-full bg-white shadow-md rounded-lg p-8">
@@ -132,7 +131,7 @@ export default function AuthForm({ onSubmit }: AuthFormProps) {
           </button>
         </div>
       </form>
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <button
           onClick={handleGoogleLogin}
           type="button"
@@ -146,7 +145,7 @@ export default function AuthForm({ onSubmit }: AuthFormProps) {
           </svg>
           Masuk melalui Google
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }
